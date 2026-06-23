@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FixBridge — Business Support Marketplace</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0F1B2D;--navy-mid:#1A2E47;--navy-light:#223553;
+  --teal:#00C9A7;--teal-dim:#009e85;
+  --amber:#F59E0B;--purple:#8B5CF6;
+  --slate:#F0F4F8;--slate-mid:#CBD5E1;
+  --white:#FFFFFF;--muted:#94A3B8;
+  --danger:#EF4444;--success:#22C55E;
+}
+body{font-family:'Inter',sans-serif;background:var(--navy);color:var(--white);min-height:100vh;overflow-x:hidden}
+
+/* ─── VIEWS ─── */
+.view{display:none;min-height:100vh}
+.view.active{display:block}
+
+/* ─── AUTH ─── */
+#authView{
+  display:none;min-height:100vh;
+  background:linear-gradient(135deg,#0a1422 0%,#0f2535 50%,#0a1422 100%);
+  align-items:center;justify-content:center;
+}
+#authView.active{display:flex}
+.auth-card{
+  width:460px;max-width:95vw;
+  background:var(--navy-mid);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:24px;padding:40px;
+  position:relative;overflow:hidden;
+}
+.auth-card::before{
+  content:'';position:absolute;top:-80px;right:-80px;
+  width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,201,167,0.12),transparent 70%);
+  pointer-events:none;
+}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px;justify-content:center}
+.auth-logo-icon{width:44px;height:44px;background:linear-gradient(135deg,var(--teal),var(--purple));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.auth-logo-text{font-family:'Sora',sans-serif;font-weight:800;font-size:24px;background:linear-gradient(135deg,var(--teal),var(--white));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.auth-tab-row{display:flex;background:rgba(255,255,255,0.05);border-radius:12px;padding:4px;margin-bottom:28px;gap:4px}
+.auth-tab{flex:1;padding:9px;border-radius:9px;border:none;background:transparent;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s}
+.auth-tab.active{background:var(--navy-light);color:var(--white)}
+.auth-title{font-family:'Sora',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px}
+.auth-sub{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5}
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px}
+.form-input,.form-select,.form-textarea{
+  width:100%;background:var(--navy-light);
+  border:1px solid rgba(255,255,255,0.1);border-radius:10px;
+  color:var(--white);font-family:'Inter',sans-serif;font-size:14px;
+  padding:11px 14px;outline:none;transition:border-color .18s;
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--teal)}
+.form-select option{background:var(--navy-mid)}
+.form-textarea{resize:vertical;min-height:80px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.role-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.role-card{
+  padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);
+  cursor:pointer;transition:all .18s;text-align:center;
+}
+.role-card:hover{border-color:rgba(0,201,167,.3)}
+.role-card.active{border-color:var(--teal);background:rgba(0,201,167,.08)}
+.role-card .role-icon{font-size:26px;margin-bottom:6px}
+.role-card .role-name{font-size:13px;font-weight:700}
+.role-card .role-desc{font-size:11px;color:var(--muted);margin-top:3px}
+.btn{padding:11px 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:all .18s}
+.btn-teal{background:var(--teal);color:var(--navy)}
+.btn-teal:hover{background:var(--teal-dim);transform:translateY(-1px)}
+.btn-teal:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--white)}
+.btn-outline:hover{border-color:var(--teal);color:var(--teal)}
+.btn-ghost{background:transparent;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-ghost:hover{color:var(--white)}
+.divider-text{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin:16px 0}
+.divider-text::before,.divider-text::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08)}
+.auth-switch{text-align:center;font-size:13px;color:var(--muted);margin-top:16px}
+.auth-switch a{color:var(--teal);text-decoration:none;font-weight:600}
+
+/* ─── APP SHELL ─── */
+.layout{display:flex;min-height:100vh}
+.sidebar{
+  width:240px;background:var(--navy-mid);
+  border-right:1px solid rgba(255,255,255,.06);
+  display:flex;flex-direction:column;padding:24px 14px;
+  position:fixed;top:0;left:0;height:100vh;z-index:100;
+  transition:width .2s;
+}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:32px;padding-left:6px}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--teal),var(--purple));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.logo-text{font-family:'Sora',sans-serif;font-weight:800;font-size:19px;background:linear-gradient(135deg,var(--teal),var(--white));-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;padding:0 8px;margin-bottom:6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .18s;margin-bottom:2px;white-space:nowrap}
+.nav-item:hover{background:rgba(255,255,255,.05);color:var(--white)}
+.nav-item.active{background:rgba(0,201,167,.12);color:var(--teal)}
+.nav-item .icon{font-size:17px;width:22px;text-align:center;flex-shrink:0}
+.nav-group{margin-bottom:22px}
+.nbadge{margin-left:auto;background:var(--amber);color:var(--navy);font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+.nbadge.teal{background:var(--teal)}
+.sidebar-footer{margin-top:auto;padding:12px;background:rgba(255,255,255,.04);border-radius:12px;display:flex;align-items:center;gap:10px}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--teal));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+.sidebar-user-name{font-size:13px;font-weight:600;white-space:nowrap}
+.sidebar-user-role{font-size:11px;color:var(--muted);white-space:nowrap}
+.signout-btn{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px}
+
+.main{margin-left:240px;flex:1;padding:30px 34px;min-height:100vh}
+.page{display:none}
+.page.active{display:block}
+
+/* ─── TOPBAR ─── */
+.topbar{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+.topbar-title{font-family:'Sora',sans-serif;font-size:21px;font-weight:700}
+.topbar-title span{color:var(--teal)}
+.topbar-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+.search-bar{display:flex;align-items:center;gap:10px;background:var(--navy-mid);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:9px 15px;width:300px}
+.search-bar input{background:none;border:none;outline:none;color:var(--white);font-size:14px;font-family:'Inter',sans-serif;width:100%}
+.search-bar input::placeholder{color:var(--muted)}
+
+/* ─── STATS ─── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px}
+.stat-card{background:var(--navy-mid);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:18px;position:relative;overflow:hidden}
+.stat-label{font-size:11px;color:var(--muted);font-weight:500;margin-bottom:6px}
+.stat-value{font-family:'Sora',sans-serif;font-size:26px;font-weight:800}
+.stat-value.teal{color:var(--teal)}.stat-value.amber{color:var(--amber)}.stat-value.purple{color:var(--purple)}.stat-value.danger{color:var(--danger)}
+.stat-change{font-size:11px;color:var(--muted);margin-top:5px}
+.up{color:var(--teal)}.down{color:var(--danger)}
+
+/* ─── FILTERS ─── */
+.filter-tabs{display:flex;gap:7px;margin-bottom:18px;flex-wrap:wrap}
+.filter-tab{padding:7px 15px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.1);color:var(--muted);transition:all .18s;background:transparent;font-family:'Inter',sans-serif}
+.filter-tab:hover{color:var(--white);border-color:rgba(255,255,255,.2)}
+.filter-tab.active{background:rgba(0,201,167,.15);border-color:var(--teal);color:var(--teal)}
+
+/* ─── PROVIDER CARDS ─── */
+.providers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:28px}
+.provider-card{background:var(--navy-mid);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:18px;cursor:pointer;transition:all .22s;position:relative}
+.provider-card:hover{border-color:rgba(0,201,167,.35);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,201,167,.1)}
+.provider-card.featured{border-color:rgba(245,158,11,.25)}
+.featured-badge{position:absolute;top:12px;right:12px;background:rgba(245,158,11,.15);color:var(--amber);border:1px solid rgba(245,158,11,.3);font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;text-transform:uppercase}
+.provider-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.provider-logo{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.provider-name{font-weight:700;font-size:14px}
+.provider-category{font-size:12px;color:var(--muted);margin-top:2px}
+.provider-desc{font-size:12px;color:var(--slate-mid);line-height:1.5;margin-bottom:12px}
+.provider-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.tag{padding:3px 9px;border-radius:6px;font-size:11px;font-weight:500;background:rgba(255,255,255,.06);color:var(--muted)}
+.tag.teal{background:rgba(0,201,167,.1);color:var(--teal)}.tag.purple{background:rgba(139,92,246,.1);color:var(--purple)}
+.provider-footer{display:flex;align-items:center;justify-content:space-between}
+.provider-rate strong{font-family:'Sora',sans-serif;font-size:17px;font-weight:700;color:var(--teal)}
+.provider-rate span{color:var(--muted);font-size:12px}
+.stars{color:var(--amber);font-size:12px}
+.rating-text{font-size:11px;color:var(--muted);margin-left:3px}
+
+/* ─── HERO BANNER ─── */
+.hero-banner{background:linear-gradient(135deg,rgba(0,201,167,.1) 0%,rgba(139,92,246,.07) 100%);border:1px solid rgba(0,201,167,.18);border-radius:18px;padding:22px 26px;margin-bottom:26px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.hero-text h2{font-family:'Sora',sans-serif;font-size:18px;font-weight:800;margin-bottom:5px}
+.hero-text h2 span{color:var(--teal)}
+.hero-text p{font-size:13px;color:var(--muted);line-height:1.5}
+.hero-vis{margin-left:auto;display:flex;align-items:center;gap:5px;flex-shrink:0}
+.conn-node{width:34px;height:34px;border-radius:9px;background:var(--navy-light);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:15px}
+.conn-line{width:24px;height:2px;background:linear-gradient(90deg,var(--teal),var(--purple));border-radius:2px;position:relative}
+.conn-line::after{content:'';position:absolute;top:-3px;right:-1px;border:4px solid transparent;border-left:5px solid var(--purple)}
+.divider-v{width:1px;height:50px;background:rgba(255,255,255,.06)}
+.live-count{text-align:right;flex-shrink:0}
+.live-count .num{font-family:'Sora',sans-serif;font-size:28px;font-weight:800;color:var(--teal)}
+.live-count .lbl{font-size:11px;color:var(--muted)}
+
+/* ─── BOTTOM GRID ─── */
+.bottom-grid{display:grid;grid-template-columns:1fr 370px;gap:18px;margin-top:24px}
+.panel{background:var(--navy-mid);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:22px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:700}
+.section-sub{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* ─── AI MATCH ─── */
+.ai-match-area{background:linear-gradient(135deg,rgba(139,92,246,.08),rgba(0,201,167,.05));border:1px solid rgba(139,92,246,.2);border-radius:14px;padding:18px;margin-top:16px}
+.ai-match-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.ai-badge{background:linear-gradient(135deg,var(--purple),var(--teal));border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:var(--white)}
+.ai-thinking{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);padding:14px 0}
+.dot-pulse{display:inline-flex;gap:4px}
+.dot-pulse span{width:6px;height:6px;border-radius:50%;background:var(--purple);animation:dp .9s ease-in-out infinite}
+.dot-pulse span:nth-child(2){animation-delay:.15s}
+.dot-pulse span:nth-child(3){animation-delay:.3s}
+@keyframes dp{0%,80%,100%{transform:scale(0.6);opacity:.5}40%{transform:scale(1);opacity:1}}
+.ai-results{display:flex;flex-direction:column;gap:10px}
+.ai-match-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:13px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .18s}
+.ai-match-card:hover{border-color:rgba(0,201,167,.3);background:rgba(0,201,167,.04)}
+.match-logo{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.match-score{margin-left:auto;flex-shrink:0;text-align:right}
+.match-pct{font-family:'Sora',sans-serif;font-size:18px;font-weight:800;color:var(--teal)}
+.match-lbl{font-size:10px;color:var(--muted)}
+.match-reason{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4}
+.match-name{font-weight:700;font-size:13px}
+.match-rate{font-size:12px;color:var(--muted)}
+
+/* ─── URGENCY ─── */
+.urgency-row{display:flex;gap:7px}
+.urgency-btn{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;font-family:'Inter',sans-serif;text-align:center}
+.urgency-btn.low.active{border-color:var(--teal);background:rgba(0,201,167,.1);color:var(--teal)}
+.urgency-btn.medium.active{border-color:var(--amber);background:rgba(245,158,11,.1);color:var(--amber)}
+.urgency-btn.high.active{border-color:var(--danger);background:rgba(239,68,68,.1);color:var(--danger)}
+
+/* ─── TICKETS ─── */
+.ticket-item{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:flex-start;gap:10px}
+.ticket-item:last-child{border-bottom:none;padding-bottom:0}
+.ticket-dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.ticket-dot.open{background:var(--amber);box-shadow:0 0 6px var(--amber)}
+.ticket-dot.progress{background:var(--teal);box-shadow:0 0 6px var(--teal)}
+.ticket-dot.resolved{background:var(--slate-mid)}
+.ticket-title{font-size:13px;font-weight:600;margin-bottom:3px}
+.ticket-meta{font-size:11px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
+.ticket-status{margin-left:auto;flex-shrink:0;font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px}
+.ticket-status.open{background:rgba(245,158,11,.15);color:var(--amber)}
+.ticket-status.progress{background:rgba(0,201,167,.15);color:var(--teal)}
+.ticket-status.resolved{background:rgba(148,163,184,.1);color:var(--muted)}
+
+/* ─── PAYMENT PAGE ─── */
+.pay-grid{display:grid;grid-template-columns:1fr 380px;gap:20px}
+.pay-summary{background:linear-gradient(135deg,rgba(0,201,167,.08),rgba(139,92,246,.05));border:1px solid rgba(0,201,167,.15);border-radius:14px;padding:20px;margin-bottom:18px}
+.pay-provider-row{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.pay-logo{width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.pay-name{font-family:'Sora',sans-serif;font-size:17px;font-weight:700}
+.pay-cat{font-size:13px;color:var(--muted)}
+.line-item{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+.line-item:last-child{border-bottom:none}
+.line-item .key{color:var(--muted)}
+.line-item .val{font-weight:600}
+.line-item.total .key{font-weight:700;font-size:15px;color:var(--white)}
+.line-item.total .val{color:var(--teal);font-size:18px;font-family:'Sora',sans-serif;font-weight:800}
+.card-input-row{position:relative}
+.card-icons{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;gap:4px;font-size:18px}
+.method-tabs{display:flex;gap:8px;margin-bottom:18px}
+.method-tab{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s;text-align:center}
+.method-tab.active{border-color:var(--teal);background:rgba(0,201,167,.08);color:var(--teal)}
+.secure-badge{display:flex;align-items:center;gap:7px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.15);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--success);margin-top:16px}
+
+/* ─── PROVIDER PORTAL ─── */
+.portal-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px}
+.req-card{background:var(--navy-mid);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:18px;margin-bottom:12px;display:flex;align-items:flex-start;gap:14px;cursor:pointer;transition:all .18s}
+.req-card:hover{border-color:rgba(0,201,167,.25)}
+.req-icon{width:42px;height:42px;border-radius:10px;background:rgba(0,201,167,.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.req-title{font-weight:700;font-size:14px;margin-bottom:4px}
+.req-meta{font-size:12px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
+.req-budget{margin-left:auto;text-align:right;flex-shrink:0}
+.req-budget strong{font-family:'Sora',sans-serif;font-size:16px;font-weight:800;color:var(--teal)}
+.req-budget span{display:block;font-size:11px;color:var(--muted)}
+.earnings-chart{background:var(--navy-mid);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:22px;margin-bottom:20px}
+.chart-bars{display:flex;align-items:flex-end;gap:8px;height:80px;margin-top:16px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
+.bar{width:100%;border-radius:5px 5px 0 0;background:linear-gradient(180deg,var(--teal),var(--teal-dim));transition:all .5s ease;min-height:4px}
+.bar-label{font-size:10px;color:var(--muted)}
+
+/* ─── MODAL ─── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:999;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--navy-mid);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:30px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative}
+.modal-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.06);border:none;width:28px;height:28px;border-radius:7px;color:var(--muted);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:rgba(255,255,255,.12);color:var(--white)}
+.modal-title{font-family:'Sora',sans-serif;font-size:19px;font-weight:700;margin-bottom:5px}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:22px}
+.modal-provider-header{display:flex;align-items:center;gap:14px;padding:14px;background:rgba(255,255,255,.04);border-radius:12px;margin-bottom:18px}
+.detail-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+.detail-row:last-child{border-bottom:none}
+.detail-key{color:var(--muted)}.detail-val{font-weight:600}
+
+/* ─── TOAST ─── */
+.toast{position:fixed;bottom:26px;right:26px;background:var(--teal);color:var(--navy);padding:12px 20px;border-radius:12px;font-weight:600;font-size:14px;transform:translateY(80px);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);z-index:9999;max-width:360px}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.provider-card{animation:fadeInUp .38s ease both}
+.provider-card:nth-child(2){animation-delay:.05s}.provider-card:nth-child(3){animation-delay:.10s}
+.provider-card:nth-child(4){animation-delay:.15s}.provider-card:nth-child(5){animation-delay:.20s}
+.provider-card:nth-child(6){animation-delay:.25s}
+
+/* ─── SUCCESS SCREEN ─── */
+.success-screen{text-align:center;padding:40px 20px}
+.success-icon{font-size:56px;margin-bottom:16px}
+.success-title{font-family:'Sora',sans-serif;font-size:24px;font-weight:800;margin-bottom:8px}
+.success-sub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px}
+.success-details{background:rgba(0,201,167,.08);border:1px solid rgba(0,201,167,.15);border-radius:12px;padding:16px;text-align:left;margin-bottom:24px}
+
+@media(max-width:1200px){.providers-grid{grid-template-columns:repeat(2,1fr)}.bottom-grid,.pay-grid{grid-template-columns:1fr}.portal-stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:860px){.sidebar{width:58px;padding:16px 8px}.logo-text,.nav-label,.nav-item>span:not(.icon),.nbadge,.sidebar-user-name,.sidebar-user-role{display:none}.main{margin-left:58px;padding:18px 14px}.stats-row{grid-template-columns:repeat(2,1fr)}.providers-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ AUTH VIEW ═══════════════════════════════ -->
+<div id="authView" class="view active">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🔗</div>
+      <div class="auth-logo-text">FixBridge</div>
+    </div>
+
+    <!-- Screens -->
+    <div id="authScreen-login">
+      <div class="auth-tab-row">
+        <button class="auth-tab active" onclick="switchAuthMode('login')">Sign In</button>
+        <button class="auth-tab" onclick="switchAuthMode('signup')">Create Account</button>
+      </div>
+      <div class="auth-title">Welcome back</div>
+      <div class="auth-sub">Sign in to access the marketplace or your provider portal.</div>
+      <div class="form-group"><label class="form-label">Email Address</label><input class="form-input" type="email" placeholder="you@company.com" id="loginEmail"/></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" placeholder="••••••••" id="loginPass"/></div>
+      <button class="btn btn-teal" style="width:100%;margin-top:6px" onclick="doLogin()">Sign In →</button>
+      <div class="divider-text">or continue with</div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" style="flex:1" onclick="demoLogin('business')">🏢 Demo as Business</button>
+        <button class="btn btn-outline" style="flex:1" onclick="demoLogin('provider')">🔧 Demo as Provider</button>
+      </div>
+      <div class="auth-switch">Don't have an account? <a href="#" onclick="switchAuthMode('signup')">Create one</a></div>
+    </div>
+
+    <div id="authScreen-signup" style="display:none">
+      <div class="auth-tab-row">
+        <button class="auth-tab" onclick="switchAuthMode('login')">Sign In</button>
+        <button class="auth-tab active" onclick="switchAuthMode('signup')">Create Account</button>
+      </div>
+      <div class="auth-title">Join FixBridge</div>
+      <div class="auth-sub">Are you looking for help, or offering services?</div>
+      <div class="role-cards">
+        <div class="role-card active" id="roleCardBiz" onclick="selectRole('business')">
+          <div class="role-icon">🏢</div>
+          <div class="role-name">My Business Needs Help</div>
+          <div class="role-desc">Find & pay experts on demand</div>
+        </div>
+        <div class="role-card" id="roleCardPro" onclick="selectRole('provider')">
+          <div class="role-icon">🔧</div>
+          <div class="role-name">I Offer Services</div>
+          <div class="role-desc">Get hired by businesses</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">First Name</label><input class="form-input" placeholder="Jennifer" id="signupFirst"/></div>
+        <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" placeholder="Sowell" id="signupLast"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="you@company.com" id="signupEmail"/></div>
+      <div class="form-group" id="companyField"><label class="form-label">Company Name</label><input class="form-input" placeholder="Acme Corp" id="signupCompany"/></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" placeholder="Min. 8 characters" id="signupPass"/></div>
+      <button class="btn btn-teal" style="width:100%;margin-top:6px" onclick="doSignup()">Create Account →</button>
+      <div class="auth-switch">Already have an account? <a href="#" onclick="switchAuthMode('login')">Sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ APP VIEW ═══════════════════════════════ -->
+<div id="appView" class="view">
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+      <div class="logo">
+        <div class="logo-icon">🔗</div>
+        <div class="logo-text">FixBridge</div>
+      </div>
+
+      <!-- Business Nav -->
+      <div id="bizNav">
+        <div class="nav-group">
+          <div class="nav-label">Marketplace</div>
+          <div class="nav-item active" onclick="goPage('marketplace',this)"><span class="icon">⚡</span><span>Find Providers</span></div>
+          <div class="nav-item" onclick="goPage('tickets',this)"><span class="icon">🎫</span><span>My Tickets</span><span class="nbadge">3</span></div>
+          <div class="nav-item" onclick="goPage('engagements',this)"><span class="icon">🤝</span><span>Engagements</span><span class="nbadge teal">2</span></div>
+        </div>
+        <div class="nav-group">
+          <div class="nav-label">Account</div>
+          <div class="nav-item" onclick="goPage('payments',this)"><span class="icon">💳</span><span>Payments</span></div>
+          <div class="nav-item" onclick="goPage('saved',this)"><span class="icon">⭐</span><span>Saved</span></div>
+        </div>
+      </div>
+
+      <!-- Provider Nav -->
+      <div id="proNav" style="display:none">
+        <div class="nav-group">
+          <div class="nav-label">My Portal</div>
+          <div class="nav-item active" onclick="goPage('portal',this)"><span class="icon">📊</span><span>Dashboard</span></div>
+          <div class="nav-item" onclick="goPage('requests',this)"><span class="icon">📥</span><span>Requests</span><span class="nbadge">5</span></div>
+          <div class="nav-item" onclick="goPage('earnings',this)"><span class="icon">💰</span><span>Earnings</span></div>
+          <div class="nav-item" onclick="goPage('profile-edit',this)"><span class="icon">✏️</span><span>My Profile</span></div>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Help</div>
+        <div class="nav-item" onclick="showToast('Support chat coming soon!')"><span class="icon">💬</span><span>Support</span></div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="avatar" id="sidebarAvatar">JS</div>
+        <div>
+          <div class="sidebar-user-name" id="sidebarName">Jennifer S.</div>
+          <div class="sidebar-user-role" id="sidebarRole">Business Owner</div>
+        </div>
+        <button class="signout-btn" onclick="doSignout()" title="Sign out">↩</button>
+      </div>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- ── MARKETPLACE PAGE ── -->
+      <div class="page active" id="page-marketplace">
+        <div class="topbar">
+          <div><div class="topbar-title">Find <span>Expert Help</span></div></div>
+          <div class="topbar-right">
+            <div class="search-bar"><span>🔍</span><input type="text" placeholder="Search providers…" id="searchInput" oninput="filterProviders()"/></div>
+            <button class="btn btn-teal" onclick="scrollToTicket()">+ Submit Issue</button>
+          </div>
+        </div>
+
+        <div class="hero-banner">
+          <div class="hero-text">
+            <h2>No contracts. <span>Pay per engagement.</span></h2>
+            <p>Browse vetted experts across IT, Legal, HR, Accounting & more.<br/>Get matched by AI in seconds.</p>
+          </div>
+          <div class="divider-v"></div>
+          <div class="hero-vis">
+            <div class="conn-node">🏢</div><div class="conn-line"></div>
+            <div class="conn-node">🔧</div><div class="conn-line"></div>
+            <div class="conn-node">✅</div>
+          </div>
+          <div class="divider-v"></div>
+          <div class="live-count"><div class="num" id="liveCount">847</div><div class="lbl">providers online</div></div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">Issues Resolved</div><div class="stat-value teal">142</div><div class="stat-change"><span class="up">↑ 18%</span> this month</div></div>
+          <div class="stat-card"><div class="stat-label">Avg. Response</div><div class="stat-value amber">14m</div><div class="stat-change"><span class="up">6 min faster</span> than avg</div></div>
+          <div class="stat-card"><div class="stat-label">Saved vs Contracts</div><div class="stat-value purple">$8,240</div><div class="stat-change"><span class="up">↑ 34%</span> savings</div></div>
+          <div class="stat-card"><div class="stat-label">Open Tickets</div><div class="stat-value danger">3</div><div class="stat-change">2 in progress</div></div>
+        </div>
+
+        <div class="filter-tabs" id="filterTabs">
+          <button class="filter-tab active" onclick="filterCategory(this,'all')">All</button>
+          <button class="filter-tab" onclick="filterCategory(this,'IT Support')">💻 IT Support</button>
+          <button class="filter-tab" onclick="filterCategory(this,'Legal')">⚖️ Legal</button>
+          <button class="filter-tab" onclick="filterCategory(this,'Accounting')">📊 Accounting</button>
+          <button class="filter-tab" onclick="filterCategory(this,'HR')">👥 HR</button>
+          <button class="filter-tab" onclick="filterCategory(this,'Marketing')">📣 Marketing</button>
+          <button class="filter-tab" onclick="filterCategory(this,'Operations')">🔄 Operations</button>
+        </div>
+
+        <div class="section-header">
+          <div><div class="section-title">Available Providers</div><div class="section-sub" id="providerCount">Showing 8 providers</div></div>
+          <select class="form-select" style="width:auto;font-size:13px;padding:8px 12px" onchange="sortProviders(this.value)">
+            <option value="rating">Top Rated</option>
+            <option value="price_low">Price: Low → High</option>
+            <option value="price_high">Price: High → Low</option>
+            <option value="fast">Fastest Response</option>
+          </select>
+        </div>
+
+        <div class="providers-grid" id="providersGrid"></div>
+
+        <div class="bottom-grid" id="ticketSection">
+          <!-- TICKET + AI MATCH -->
+          <div class="panel">
+            <div class="section-header">
+              <div><div class="section-title">Submit a Trouble Ticket</div><div class="section-sub">Describe your issue — AI matches you to the best provider</div></div>
+            </div>
+            <div class="form-group"><label class="form-label">Issue Title</label><input class="form-input" placeholder="e.g. Payroll software not calculating overtime" id="issueTitle"/></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="form-group"><label class="form-label">Category</label>
+                <select class="form-select" id="issueCategory">
+                  <option>IT Support</option><option>Legal</option><option>Accounting</option>
+                  <option>HR</option><option>Marketing</option><option>Operations</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="form-label">Budget/hr</label><input class="form-input" placeholder="e.g. $75" id="issueBudget"/></div>
+            </div>
+            <div class="form-group"><label class="form-label">Describe the Issue</label><textarea class="form-textarea" placeholder="Be specific — AI uses this to rank providers…" id="issueDesc"></textarea></div>
+            <div class="form-group"><label class="form-label">Urgency</label>
+              <div class="urgency-row">
+                <button class="urgency-btn low" onclick="setUrgency('low',this)">🟢 Low</button>
+                <button class="urgency-btn medium active" onclick="setUrgency('medium',this)">🟡 Medium</button>
+                <button class="urgency-btn high" onclick="setUrgency('high',this)">🔴 High</button>
+              </div>
+            </div>
+            <button class="btn btn-teal" style="width:100%;padding:12px" id="aiMatchBtn" onclick="runAIMatch()">✨ Find Matching Providers with AI →</button>
+
+            <!-- AI MATCH RESULTS -->
+            <div class="ai-match-area" id="aiMatchArea" style="display:none">
+              <div class="ai-match-header">
+                <div class="ai-badge">✨ AI Match</div>
+                <span style="font-size:13px;font-weight:600" id="aiMatchTitle">Analyzing your issue…</span>
+              </div>
+              <div id="aiMatchContent">
+                <div class="ai-thinking"><div class="dot-pulse"><span></span><span></span><span></span></div> Claude is reading your issue and ranking providers…</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RECENT TICKETS -->
+          <div class="panel">
+            <div class="section-header"><div class="section-title">Recent Tickets</div><a href="#" style="font-size:13px;color:var(--teal);text-decoration:none" onclick="goPage('tickets',null)">View all</a></div>
+            <div class="ticket-item"><div class="ticket-dot progress"></div><div style="flex:1"><div class="ticket-title">Website down — 502 server error</div><div class="ticket-meta"><span>💻 IT</span><span>TechForce</span><span>2h ago</span></div></div><div class="ticket-status progress">In Progress</div></div>
+            <div class="ticket-item"><div class="ticket-dot open"></div><div style="flex:1"><div class="ticket-title">Employee contract template needed</div><div class="ticket-meta"><span>⚖️ Legal</span><span>Awaiting match</span><span>5h ago</span></div></div><div class="ticket-status open">Open</div></div>
+            <div class="ticket-item"><div class="ticket-dot progress"></div><div style="flex:1"><div class="ticket-title">QuickBooks reconciliation errors</div><div class="ticket-meta"><span>📊 Accounting</span><span>ClearBooks</span><span>1d ago</span></div></div><div class="ticket-status progress">In Progress</div></div>
+            <div class="ticket-item"><div class="ticket-dot resolved"></div><div style="flex:1"><div class="ticket-title">Email security — SPF/DKIM setup</div><div class="ticket-meta"><span>💻 IT</span><span>NetGuard Inc.</span><span>3d ago</span></div></div><div class="ticket-status resolved">Resolved ✓</div></div>
+            <div class="ticket-item"><div class="ticket-dot resolved"></div><div style="flex:1"><div class="ticket-title">Social media strategy audit</div><div class="ticket-meta"><span>📣 Marketing</span><span>BrandBoost</span><span>5d ago</span></div></div><div class="ticket-status resolved">Resolved ✓</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PAYMENTS PAGE ── -->
+      <div class="page" id="page-payments">
+        <div class="topbar"><div class="topbar-title">💳 <span>Payments</span></div></div>
+        <div class="pay-grid">
+          <div>
+            <div class="section-title" style="margin-bottom:16px">Pay for an Engagement</div>
+            <div class="pay-summary">
+              <div class="pay-provider-row">
+                <div class="pay-logo" id="payLogo" style="background:#1e3a5f">🖥️</div>
+                <div><div class="pay-name" id="payProvName">TechForce Solutions</div><div class="pay-cat" id="payProvCat">IT Support · 2-hour session</div></div>
+              </div>
+              <div class="line-item"><span class="key">Rate</span><span class="val" id="payRate">$85/hr</span></div>
+              <div class="line-item"><span class="key">Hours</span><span class="val" id="payHours">2 hrs</span></div>
+              <div class="line-item"><span class="key">Platform fee (5%)</span><span class="val" id="payFee">$8.50</span></div>
+              <div class="line-item total"><span class="key">Total</span><span class="val" id="payTotal">$178.50</span></div>
+            </div>
+
+            <div class="method-tabs">
+              <button class="method-tab active" onclick="setPayMethod(this,'card')">💳 Card</button>
+              <button class="method-tab" onclick="setPayMethod(this,'ach')">🏦 ACH / Bank</button>
+              <button class="method-tab" onclick="setPayMethod(this,'wallet')">📱 Wallet</button>
+            </div>
+
+            <div id="payForm-card">
+              <div class="form-group"><label class="form-label">Cardholder Name</label><input class="form-input" placeholder="Jennifer Sowell" id="cardName"/></div>
+              <div class="form-group card-input-row"><label class="form-label">Card Number</label><input class="form-input" placeholder="1234  5678  9012  3456" id="cardNum" oninput="formatCard(this)" maxlength="19"/><div class="card-icons">💳</div></div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Expiry</label><input class="form-input" placeholder="MM / YY" id="cardExp" oninput="formatExp(this)" maxlength="7"/></div>
+                <div class="form-group"><label class="form-label">CVC</label><input class="form-input" placeholder="•••" maxlength="4"/></div>
+              </div>
+            </div>
+            <div id="payForm-ach" style="display:none">
+              <div class="form-group"><label class="form-label">Account Holder Name</label><input class="form-input" placeholder="Jennifer Sowell"/></div>
+              <div class="form-group"><label class="form-label">Routing Number</label><input class="form-input" placeholder="9 digits"/></div>
+              <div class="form-group"><label class="form-label">Account Number</label><input class="form-input" placeholder="Account number"/></div>
+            </div>
+            <div id="payForm-wallet" style="display:none;text-align:center;padding:24px">
+              <div style="font-size:48px;margin-bottom:12px">📱</div>
+              <div style="font-weight:700;margin-bottom:6px">Pay with Mobile Wallet</div>
+              <div style="font-size:13px;color:var(--muted);margin-bottom:18px">Apple Pay and Google Pay available on supported devices.</div>
+              <button class="btn" style="background:#000;color:#fff;width:100%;padding:12px;font-size:15px">🍎 Pay with Apple Pay</button>
+              <div style="margin:10px 0;font-size:12px;color:var(--muted)">or</div>
+              <button class="btn" style="background:#fff;color:#000;width:100%;padding:12px;font-size:15px">🔵 Pay with Google Pay</button>
+            </div>
+
+            <div class="secure-badge">🔒 256-bit SSL encryption · Funds held in escrow until job is complete</div>
+            <button class="btn btn-teal" style="width:100%;margin-top:14px;padding:13px;font-size:15px" onclick="processPayment()">Confirm & Pay <span id="payBtnAmt">$178.50</span> →</button>
+          </div>
+
+          <div>
+            <div class="panel" style="margin-bottom:16px">
+              <div class="section-title" style="margin-bottom:14px">Payment History</div>
+              <div class="ticket-item"><div class="ticket-dot resolved"></div><div style="flex:1"><div class="ticket-title">TechForce Solutions</div><div class="ticket-meta"><span>Jun 18, 2026</span><span>2 hrs</span></div></div><div style="font-weight:700;color:var(--teal)">$178.50</div></div>
+              <div class="ticket-item"><div class="ticket-dot resolved"></div><div style="flex:1"><div class="ticket-title">ClearBooks Pro</div><div class="ticket-meta"><span>Jun 12, 2026</span><span>1.5 hrs</span></div></div><div style="font-weight:700;color:var(--teal)">$117.19</div></div>
+              <div class="ticket-item"><div class="ticket-dot resolved"></div><div style="flex:1"><div class="ticket-title">BrandBoost Agency</div><div class="ticket-meta"><span>Jun 5, 2026</span><span>3 hrs</span></div></div><div style="font-weight:700;color:var(--teal)">$283.50</div></div>
+              <div class="ticket-item"><div class="ticket-dot resolved"></div><div style="flex:1"><div class="ticket-title">LexPath Advisory</div><div class="ticket-meta"><span>May 28, 2026</span><span>1 hr</span></div></div><div style="font-weight:700;color:var(--teal)">$126.00</div></div>
+              <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between">
+                <span style="color:var(--muted);font-size:13px">Total Spent (June)</span>
+                <span style="font-family:'Sora',sans-serif;font-weight:800;color:var(--teal)">$705.19</span>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="section-title" style="margin-bottom:12px">Escrow Protected</div>
+              <div style="font-size:13px;color:var(--muted);line-height:1.6">Your payment is held securely until the work is confirmed complete. Dispute resolution available within 72 hours.</div>
+              <div style="margin-top:12px;display:flex;gap:8px;font-size:12px">
+                <span class="tag teal">✓ No contracts</span>
+                <span class="tag teal">✓ Escrow protection</span>
+                <span class="tag teal">✓ Dispute support</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PROVIDER PORTAL PAGE ── -->
+      <div class="page" id="page-portal">
+        <div class="topbar"><div class="topbar-title">📊 Provider <span>Dashboard</span></div><div class="topbar-right"><button class="btn btn-outline" onclick="goPage('profile-edit',null)">✏️ Edit Profile</button></div></div>
+
+        <div class="portal-stats">
+          <div class="stat-card"><div class="stat-label">This Month's Earnings</div><div class="stat-value teal">$4,320</div><div class="stat-change"><span class="up">↑ 22%</span> vs last month</div></div>
+          <div class="stat-card"><div class="stat-label">Active Engagements</div><div class="stat-value amber">7</div><div class="stat-change">3 pending review</div></div>
+          <div class="stat-card"><div class="stat-label">Avg. Rating</div><div class="stat-value purple">4.9 ⭐</div><div class="stat-change">Based on 48 reviews</div></div>
+          <div class="stat-card"><div class="stat-label">Response Rate</div><div class="stat-value teal">98%</div><div class="stat-change"><span class="up">Top 5%</span> of providers</div></div>
+        </div>
+
+        <div class="earnings-chart panel">
+          <div class="section-header"><div class="section-title">Earnings — Last 8 Weeks</div></div>
+          <div class="chart-bars" id="earningsChart"></div>
+        </div>
+
+        <div class="section-title" style="margin-bottom:14px">New Incoming Requests</div>
+        <div id="requestsList"></div>
+      </div>
+
+      <!-- ── PROFILE EDIT PAGE ── -->
+      <div class="page" id="page-profile-edit">
+        <div class="topbar"><div class="topbar-title">✏️ Edit <span>Provider Profile</span></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:860px">
+          <div class="panel">
+            <div class="section-title" style="margin-bottom:16px">Business Info</div>
+            <div class="form-group"><label class="form-label">Business Name</label><input class="form-input" placeholder="TechForce Solutions" value="TechForce Solutions"/></div>
+            <div class="form-group"><label class="form-label">Category</label>
+              <select class="form-select"><option>IT Support</option><option>Legal</option><option>Accounting</option><option>HR</option><option>Marketing</option><option>Operations</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" placeholder="Describe your services…">Rapid-response IT support for SMBs. Network troubleshooting, server issues, cybersecurity, and remote desktop support.</textarea></div>
+            <div class="form-group"><label class="form-label">Hourly Rate ($)</label><input class="form-input" value="85" type="number"/></div>
+          </div>
+          <div class="panel">
+            <div class="section-title" style="margin-bottom:16px">Skills & Availability</div>
+            <div class="form-group"><label class="form-label">Skills (comma separated)</label><input class="form-input" value="Windows Server, AWS, Cisco Networking, Endpoint Security"/></div>
+            <div class="form-group"><label class="form-label">Avg Response Time</label>
+              <select class="form-select"><option>Under 15 minutes</option><option>Under 30 minutes</option><option>Under 1 hour</option><option>Under 4 hours</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Availability</label>
+              <select class="form-select"><option>Available Now</option><option>Busy — 1 day wait</option><option>Unavailable</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Service Tags</label><input class="form-input" value="Network, Security, Cloud, 24/7"/></div>
+            <button class="btn btn-teal" style="width:100%;margin-top:6px" onclick="showToast('Profile updated successfully!')">Save Changes</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TICKETS PAGE ── -->
+      <div class="page" id="page-tickets">
+        <div class="topbar"><div class="topbar-title">🎫 My <span>Tickets</span></div><div class="topbar-right"><button class="btn btn-teal" onclick="goPage('marketplace',null)">+ New Ticket</button></div></div>
+        <div class="panel">
+          <div class="ticket-item"><div class="ticket-dot progress"></div><div style="flex:1"><div class="ticket-title">Website down — 502 server error</div><div class="ticket-meta"><span>💻 IT</span><span>TechForce Solutions</span><span>2h ago</span><span>$85/hr</span></div></div><div class="ticket-status progress">In Progress</div></div>
+          <div class="ticket-item"><div class="ticket-dot open"></div><div style="flex:1"><div class="ticket-title">Employee contract template needed</div><div class="ticket-meta"><span>⚖️ Legal</span><span>Awaiting provider</span><span>5h ago</span><span>$120/hr</span></div></div><div class="ticket-status open">Open</div></div>
+          <div class="ticket-item"><div class="ticket-dot progress"></div><div style="flex:1"><div class="ticket-title">QuickBooks reconciliation errors</div><div class="ticket-meta"><span>📊 Accounting</span><span>ClearBooks Pro</span><span>1d ago</span><span>$75/hr</span></div></div><div class="ticket-status progress">In Progress</div></div>
+          <div class="ticket-item"><div class="ticket-dot resolved"></div><div style="flex:1"><div class="ticket-title">Email security — SPF/DKIM setup</div><div class="ticket-meta"><span>💻 IT</span><span>NetGuard Inc.</span><span>3d ago</span><span>$130/hr</span></div></div><div class="ticket-status resolved">Resolved ✓</div></div>
+          <div class="ticket-item"><div class="ticket-dot resolved"></div><div style="flex:1"><div class="ticket-title">Social media strategy audit</div><div class="ticket-meta"><span>📣 Marketing</span><span>BrandBoost Agency</span><span>5d ago</span><span>$90/hr</span></div></div><div class="ticket-status resolved">Resolved ✓</div></div>
+        </div>
+      </div>
+
+      <!-- ── ENGAGEMENTS PAGE ── -->
+      <div class="page" id="page-engagements">
+        <div class="topbar"><div class="topbar-title">🤝 Active <span>Engagements</span></div></div>
+        <div class="panel">
+          <div style="padding:16px 0;border-bottom:1px solid rgba(255,255,255,.06)">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+              <div class="provider-logo" style="background:#1e3a5f;width:38px;height:38px;font-size:16px">🖥️</div>
+              <div><div style="font-weight:700">TechForce Solutions</div><div style="font-size:12px;color:var(--muted)">Started Jun 21 · IT Support</div></div>
+              <div style="margin-left:auto"><span class="ticket-status progress">Active</span></div>
+            </div>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Issue: Website down — 502 error. Provider connected remotely and is diagnosing nginx config.</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-teal" onclick="openPayment('TechForce Solutions','🖥️','#1e3a5f','IT Support · 2-hour session',85,2)">Pay Now ($178.50)</button>
+              <button class="btn btn-outline">Message</button>
+              <button class="btn btn-ghost" onclick="showToast('Ticket closed.')">Mark Complete</button>
+            </div>
+          </div>
+          <div style="padding:16px 0">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+              <div class="provider-logo" style="background:#1a3d2b;width:38px;height:38px;font-size:16px">📒</div>
+              <div><div style="font-weight:700">ClearBooks Pro</div><div style="font-size:12px;color:var(--muted)">Started Jun 22 · Accounting</div></div>
+              <div style="margin-left:auto"><span class="ticket-status progress">Active</span></div>
+            </div>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Issue: QuickBooks reconciliation errors in June payroll. Provider reviewing transaction logs.</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-teal" onclick="openPayment('ClearBooks Pro','📒','#1a3d2b','Accounting · 1.5-hour session',75,1.5)">Pay Now ($117.19)</button>
+              <button class="btn btn-outline">Message</button>
+              <button class="btn btn-ghost" onclick="showToast('Ticket closed.')">Mark Complete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SAVED PAGE ── -->
+      <div class="page" id="page-saved">
+        <div class="topbar"><div class="topbar-title">⭐ <span>Saved Providers</span></div></div>
+        <div class="providers-grid" id="savedGrid"></div>
+      </div>
+
+      <!-- ── REQUESTS PAGE (PROVIDER) ── -->
+      <div class="page" id="page-requests">
+        <div class="topbar"><div class="topbar-title">📥 Incoming <span>Requests</span></div></div>
+        <div id="fullRequestsList"></div>
+      </div>
+
+      <!-- ── EARNINGS PAGE (PROVIDER) ── -->
+      <div class="page" id="page-earnings">
+        <div class="topbar"><div class="topbar-title">💰 <span>Earnings</span></div></div>
+        <div class="portal-stats">
+          <div class="stat-card"><div class="stat-label">June Earnings</div><div class="stat-value teal">$4,320</div></div>
+          <div class="stat-card"><div class="stat-label">Total (YTD)</div><div class="stat-value purple">$28,440</div></div>
+          <div class="stat-card"><div class="stat-label">Avg per Engagement</div><div class="stat-value amber">$217</div></div>
+          <div class="stat-card"><div class="stat-label">Pending Payout</div><div class="stat-value teal">$890</div></div>
+        </div>
+        <div class="earnings-chart panel"><div class="section-title" style="margin-bottom:10px">Monthly Earnings 2026</div><div class="chart-bars" id="earningsChart2"></div></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- PROVIDER MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal"><button class="modal-close" onclick="closeModalDirect()">✕</button><div id="modalBody"></div></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ─── DATA ─── */
+const providers = [
+  {id:1,name:"TechForce Solutions",category:"IT Support",logo:"🖥️",color:"#1e3a5f",desc:"Rapid-response IT support for SMBs. Network troubleshooting, server issues, cybersecurity incidents, and remote desktop support.",tags:["Network","Security","Cloud","24/7"],rate:85,unit:"hr",rating:4.9,reviews:312,response:"< 15 min",jobs:1840,featured:true,skills:["Windows Server","AWS","Cisco Networking","Endpoint Security"]},
+  {id:2,name:"LexPath Advisory",category:"Legal",logo:"⚖️",color:"#2d1b4e",desc:"Business legal support: contracts, compliance, HR policy, and dispute resolution. No retainer required.",tags:["Contracts","Compliance","Employment","LLC/Corp"],rate:120,unit:"hr",rating:4.8,reviews:178,response:"< 2 hrs",jobs:620,featured:false,skills:["Contract Drafting","Business Formation","Employment Law","IP Protection"]},
+  {id:3,name:"ClearBooks Pro",category:"Accounting",logo:"📒",color:"#1a3d2b",desc:"Bookkeeping, payroll troubleshooting, tax prep, and QuickBooks support. Certified CPAs on demand.",tags:["QuickBooks","Payroll","Tax","Audit Prep"],rate:75,unit:"hr",rating:4.7,reviews:241,response:"< 30 min",jobs:980,featured:false,skills:["QuickBooks","Xero","Payroll Processing","Tax Compliance"]},
+  {id:4,name:"PeopleFirst HR",category:"HR",logo:"👥",color:"#3b2a1a",desc:"On-demand HR consulting: hiring, policy writing, employee relations, benefits advisory, and PIP documentation.",tags:["Hiring","Policy","Compliance","Benefits"],rate:95,unit:"hr",rating:4.8,reviews:156,response:"< 1 hr",jobs:520,featured:false,skills:["HRIS Setup","Benefits Admin","Employee Relations","Job Descriptions"]},
+  {id:5,name:"BrandBoost Agency",category:"Marketing",logo:"📣",color:"#1f1a3b",desc:"Digital marketing support: social media audits, Google Ads fixes, email campaigns, and branding strategy.",tags:["SEO","Social","Google Ads","Email"],rate:90,unit:"hr",rating:4.6,reviews:203,response:"< 3 hrs",jobs:770,featured:true,skills:["Google Ads","Meta Ads","Email Marketing","Brand Strategy"]},
+  {id:6,name:"OpsCore Consulting",category:"Operations",logo:"🔄",color:"#1a2a3b",desc:"Process improvement, supply chain troubleshooting, SOP writing, vendor management, and ops tech support.",tags:["SOP","Supply Chain","Automation","Vendors"],rate:110,unit:"hr",rating:4.9,reviews:89,response:"< 4 hrs",jobs:340,featured:false,skills:["Process Mapping","Lean Six Sigma","ERP Systems","Vendor Negotiation"]},
+  {id:7,name:"NetGuard Inc.",category:"IT Support",logo:"🛡️",color:"#0d2535",desc:"Cybersecurity specialists: threat detection, firewall setup, data breach response, and security audits.",tags:["Cybersecurity","Firewall","HIPAA","Backup"],rate:130,unit:"hr",rating:5.0,reviews:67,response:"< 20 min",jobs:290,featured:false,skills:["Penetration Testing","HIPAA Compliance","Firewall Config","Incident Response"]},
+  {id:8,name:"ScaleUp Finance",category:"Accounting",logo:"💰",color:"#1a2e1f",desc:"CFO-level support without the full-time hire. Cash flow, budgeting, forecasting, and investor prep.",tags:["CFO","Forecasting","Budgeting","Pitch Prep"],rate:150,unit:"hr",rating:4.9,reviews:54,response:"< 4 hrs",jobs:180,featured:true,skills:["Financial Modeling","Cash Flow","KPI Dashboards","Investor Decks"]}
+];
+
+const incomingRequests = [
+  {id:1,title:"Firewall config review after breach attempt",category:"IT Support",budget:"$150/hr",urgency:"🔴 High",time:"10 min ago",desc:"We detected a port scan on our network last night. Need a firewall review and hardening ASAP."},
+  {id:2,title:"Set up employee onboarding checklist in Notion",category:"Operations",budget:"$80/hr",urgency:"🟡 Medium",time:"1 hr ago",desc:"Building out our HR ops system. Need someone to help design onboarding workflow in Notion."},
+  {id:3,title:"Debug Stripe webhook failing in production",category:"IT Support",budget:"$100/hr",urgency:"🔴 High",time:"2 hrs ago",desc:"Our Stripe payment webhooks stopped firing after a recent deploy. Revenue impact ongoing."},
+  {id:4,title:"Quarterly reconciliation — 3 accounts",category:"Accounting",budget:"$75/hr",urgency:"🟢 Low",time:"4 hrs ago",desc:"Need an accountant to reconcile Q2 books across our checking, savings, and merchant accounts."},
+  {id:5,title:"Google Ads account audit — high CPC",category:"Marketing",budget:"$90/hr",urgency:"🟡 Medium",time:"6 hrs ago",desc:"Our cost-per-click doubled last month. Need a Google Ads expert to audit campaigns and cut waste."}
+];
+
+/* ─── STATE ─── */
+let currentUser = null;
+let activeCategory = 'all';
+let activeUrgency = 'medium';
+let savedProviders = new Set();
+let displayedProviders = [...providers];
+
+/* ─── AUTH ─── */
+function switchAuthMode(mode){
+  document.getElementById('authScreen-login').style.display = mode==='login'?'block':'none';
+  document.getElementById('authScreen-signup').style.display = mode==='signup'?'block':'none';
+}
+
+let signupRole = 'business';
+function selectRole(r){
+  signupRole = r;
+  document.getElementById('roleCardBiz').classList.toggle('active', r==='business');
+  document.getElementById('roleCardPro').classList.toggle('active', r==='provider');
+  document.getElementById('companyField').style.display = r==='business'?'block':'none';
+}
+
+function demoLogin(role){
+  currentUser = {
+    name: role==='business' ? 'Jennifer Sowell' : 'Alex Provider',
+    initials: role==='business' ? 'JS' : 'AP',
+    role: role,
+    company: role==='business' ? 'BusyMomBoss Co.' : 'TechForce Solutions'
+  };
+  launchApp();
+}
+
+function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value.trim();
+  if(!email||!pass){showToast('Please fill in both fields.', true);return;}
+  currentUser = {name: email.split('@')[0], initials: email[0].toUpperCase(), role:'business', company:'My Business'};
+  launchApp();
+}
+
+function doSignup(){
+  const first = document.getElementById('signupFirst').value.trim();
+  const last = document.getElementById('signupLast').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  if(!first||!email){showToast('Please fill in all required fields.', true);return;}
+  currentUser = {name:`${first} ${last}`.trim(), initials:`${first[0]}${last[0]||''}`.toUpperCase(), role:signupRole, company: document.getElementById('signupCompany').value||'My Company'};
+  launchApp();
+}
+
+function launchApp(){
+  document.getElementById('authView').classList.remove('active');
+  document.getElementById('appView').classList.add('active');
+  document.getElementById('sidebarName').textContent = currentUser.name.split(' ')[0]+' '+currentUser.name.split(' ')[1]?.charAt(0)+'.';
+  document.getElementById('sidebarRole').textContent = currentUser.role==='provider'?'Service Provider':'Business Owner';
+  document.getElementById('sidebarAvatar').textContent = currentUser.initials;
+  if(currentUser.role==='provider'){
+    document.getElementById('bizNav').style.display = 'none';
+    document.getElementById('proNav').style.display = 'block';
+    goPage('portal', document.querySelector('#proNav .nav-item'));
+  } else {
+    goPage('marketplace', document.querySelector('#bizNav .nav-item'));
+  }
+  renderProviders(providers);
+  renderPortal();
+  renderCharts();
+  renderSaved();
+}
+
+function doSignout(){
+  currentUser = null;
+  document.getElementById('appView').classList.remove('active');
+  document.getElementById('authView').classList.add('active');
+}
+
+/* ─── NAVIGATION ─── */
+function goPage(id, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pg = document.getElementById('page-'+id);
+  if(pg) pg.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+}
+
+/* ─── PROVIDERS ─── */
+function renderProviders(list){
+  const grid = document.getElementById('providersGrid');
+  document.getElementById('providerCount').textContent = `Showing ${list.length} providers`;
+  grid.innerHTML = list.map(p=>`
+    <div class="provider-card ${p.featured?'featured':''}" onclick="openProvider(${p.id})">
+      ${p.featured?'<div class="featured-badge">⭐ Top Pick</div>':''}
+      <div class="provider-header">
+        <div class="provider-logo" style="background:${p.color}">${p.logo}</div>
+        <div><div class="provider-name">${p.name}</div><div class="provider-category">${p.category}</div></div>
+      </div>
+      <div class="provider-desc">${p.desc}</div>
+      <div class="provider-tags">${p.tags.map((t,i)=>`<span class="tag ${i===0?'teal':i===1?'purple':''}">${t}</span>`).join('')}</div>
+      <div class="provider-footer">
+        <div class="provider-rate"><strong>$${p.rate}</strong><span>/${p.unit}</span></div>
+        <div style="text-align:right">
+          <div><span class="stars">${'★'.repeat(Math.floor(p.rating))}</span><span class="rating-text">${p.rating} (${p.reviews})</span></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">⚡ ${p.response}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterCategory(btn, cat){
+  document.querySelectorAll('.filter-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); activeCategory = cat; applyFilters();
+}
+function filterProviders(){ applyFilters(); }
+function applyFilters(){
+  const s = document.getElementById('searchInput').value.toLowerCase();
+  displayedProviders = providers.filter(p=>{
+    const mc = activeCategory==='all'||p.category===activeCategory;
+    const ms = !s||p.name.toLowerCase().includes(s)||p.desc.toLowerCase().includes(s)||p.tags.some(t=>t.toLowerCase().includes(s))||p.category.toLowerCase().includes(s);
+    return mc&&ms;
+  });
+  renderProviders(displayedProviders);
+}
+function sortProviders(v){
+  const s=[...displayedProviders];
+  if(v==='rating')s.sort((a,b)=>b.rating-a.rating);
+  else if(v==='price_low')s.sort((a,b)=>a.rate-b.rate);
+  else if(v==='price_high')s.sort((a,b)=>b.rate-a.rate);
+  else s.sort((a,b)=>a.response.localeCompare(b.response));
+  renderProviders(s);
+}
+
+function openProvider(id){
+  const p = providers.find(x=>x.id===id);
+  const saved = savedProviders.has(id);
+  document.getElementById('modalBody').innerHTML = `
+    <div class="modal-title">${p.name}</div>
+    <div class="modal-sub">${p.category} · No contracts · Pay per engagement</div>
+    <div class="modal-provider-header">
+      <div style="width:52px;height:52px;border-radius:13px;background:${p.color};display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">${p.logo}</div>
+      <div>
+        <div style="font-family:'Sora',sans-serif;font-size:17px;font-weight:700">${p.name}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">${p.desc.substring(0,90)}…</div>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:5px">
+          <span class="stars">${'★'.repeat(Math.floor(p.rating))}</span>
+          <span style="font-weight:700;font-size:13px">${p.rating}</span>
+          <span style="font-size:12px;color:var(--muted)">(${p.reviews} reviews · ${p.jobs} jobs)</span>
+        </div>
+      </div>
+    </div>
+    <div style="margin-bottom:14px"><div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:.06em">Core Skills</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">${p.skills.map(s=>`<span class="tag teal">${s}</span>`).join('')}</div>
+    </div>
+    <div style="margin-bottom:18px">
+      <div class="detail-row"><span class="detail-key">Hourly Rate</span><span class="detail-val" style="color:var(--teal)">$${p.rate}/hr</span></div>
+      <div class="detail-row"><span class="detail-key">Avg. Response Time</span><span class="detail-val">${p.response}</span></div>
+      <div class="detail-row"><span class="detail-key">Jobs Completed</span><span class="detail-val">${p.jobs.toLocaleString()}</span></div>
+      <div class="detail-row"><span class="detail-key">Contract Required</span><span class="detail-val" style="color:var(--teal)">No — pay per use</span></div>
+      <div class="detail-row"><span class="detail-key">Availability</span><span class="detail-val" style="color:var(--teal)">● Available Now</span></div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-teal" style="flex:1" onclick="connectProvider(${p.id},'${p.name}','${p.logo}','${p.color}','${p.category}',${p.rate})">Connect & Request Help →</button>
+      <button class="btn btn-outline" id="saveBtn-${p.id}" onclick="toggleSave(${p.id},'${p.name}')">${saved?'★ Saved':'♡ Save'}</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function connectProvider(id, name, logo, color, cat, rate){
+  closeModalDirect();
+  openPayment(name, logo, color, `${cat} · Engagement`, rate, 1);
+}
+
+function toggleSave(id, name){
+  if(savedProviders.has(id)){savedProviders.delete(id);showToast(`Removed ${name} from saved`);}
+  else{savedProviders.add(id);showToast(`★ ${name} saved to favorites`);}
+  renderSaved();
+  const btn = document.getElementById(`saveBtn-${id}`);
+  if(btn) btn.textContent = savedProviders.has(id)?'★ Saved':'♡ Save';
+}
+
+function renderSaved(){
+  const g = document.getElementById('savedGrid');
+  if(!g) return;
+  const list = providers.filter(p=>savedProviders.has(p.id));
+  if(list.length===0){g.innerHTML='<div style="padding:40px;color:var(--muted);font-size:14px">No saved providers yet — browse the marketplace and save ones you like.</div>';return;}
+  g.innerHTML = list.map(p=>`
+    <div class="provider-card" onclick="openProvider(${p.id})">
+      <div class="provider-header"><div class="provider-logo" style="background:${p.color}">${p.logo}</div><div><div class="provider-name">${p.name}</div><div class="provider-category">${p.category}</div></div></div>
+      <div class="provider-desc">${p.desc}</div>
+      <div class="provider-footer"><div class="provider-rate"><strong>$${p.rate}</strong><span>/hr</span></div><div><span class="stars">★</span><span class="rating-text">${p.rating}</span></div></div>
+    </div>
+  `).join('');
+}
+
+/* ─── AI MATCH ─── */
+function setUrgency(level,btn){
+  activeUrgency=level;
+  document.querySelectorAll('.urgency-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function runAIMatch(){
+  const title = document.getElementById('issueTitle').value.trim();
+  const desc = document.getElementById('issueDesc').value.trim();
+  const category = document.getElementById('issueCategory').value;
+  const budget = document.getElementById('issueBudget').value.trim();
+  if(!title){showToast('Please enter an issue title first.', true);return;}
+
+  const area = document.getElementById('aiMatchArea');
+  const content = document.getElementById('aiMatchContent');
+  const titleEl = document.getElementById('aiMatchTitle');
+  const btn = document.getElementById('aiMatchBtn');
+
+  area.style.display='block';
+  titleEl.textContent='Analyzing your issue…';
+  content.innerHTML='<div class="ai-thinking"><div class="dot-pulse"><span></span><span></span><span></span></div> Claude is reading your issue and ranking providers…</div>';
+  btn.disabled=true;
+  btn.textContent='Analyzing…';
+
+  area.scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  const providerList = providers.map(p=>`- ${p.name} (${p.category}, $${p.rate}/hr, skills: ${p.skills.join(', ')})`).join('\n');
+
+  const prompt = `You are a business support marketplace AI. A business has submitted a trouble ticket and you must match them to the best providers from a list.
+
+TICKET:
+Title: ${title}
+Category: ${category}
+Description: ${desc||'(no additional description provided)'}
+Budget: ${budget||'flexible'}
+Urgency: ${activeUrgency}
+
+AVAILABLE PROVIDERS:
+${providerList}
+
+Return a JSON array of the top 3 matching providers with this exact shape (no markdown, no backticks, raw JSON only):
+[
+  {"name":"Provider Name","score":95,"reason":"One sentence why they match."},
+  {"name":"Provider Name","score":87,"reason":"One sentence why they match."},
+  {"name":"Provider Name","score":78,"reason":"One sentence why they match."}
+]
+
+Score 0-100. Reason must be specific to the ticket. Return ONLY the JSON array.`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-6",
+        max_tokens:1000,
+        messages:[{role:"user",content:prompt}]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content.map(i=>i.text||'').join('').trim();
+    let matches;
+    try { matches = JSON.parse(raw); }
+    catch { const m = raw.match(/\[[\s\S]*\]/); matches = m ? JSON.parse(m[0]) : []; }
+
+    titleEl.textContent=`Top ${matches.length} matches for your issue`;
+    content.innerHTML='<div class="ai-results">'+matches.map(m=>{
+      const p = providers.find(x=>x.name===m.name)||{logo:'🔧',color:'#1a2a3b',rate:0,id:0};
+      return `<div class="ai-match-card" onclick="openProvider(${p.id})">
+        <div class="match-logo" style="background:${p.color}">${p.logo}</div>
+        <div style="flex:1">
+          <div class="match-name">${m.name}</div>
+          <div class="match-rate">$${p.rate}/hr</div>
+          <div class="match-reason">${m.reason}</div>
+        </div>
+        <div class="match-score"><div class="match-pct">${m.score}%</div><div class="match-lbl">match</div></div>
+      </div>`;
+    }).join('')+'</div>';
+
+    btn.disabled=false;
+    btn.textContent='✨ Find Matching Providers with AI →';
+    showToast(`✨ AI found ${matches.length} great matches for you!`);
+  } catch(e){
+    content.innerHTML='<div style="font-size:13px;color:var(--danger);padding:12px">Could not reach AI — check your network and try again.</div>';
+    btn.disabled=false;
+    btn.textContent='✨ Find Matching Providers with AI →';
+  }
+}
+
+/* ─── PAYMENTS ─── */
+function openPayment(name, logo, color, cat, rate, hours){
+  const fee = +(rate*hours*0.05).toFixed(2);
+  const total = +(rate*hours+fee).toFixed(2);
+  document.getElementById('payLogo').textContent=logo;
+  document.getElementById('payLogo').style.background=color;
+  document.getElementById('payProvName').textContent=name;
+  document.getElementById('payProvCat').textContent=cat;
+  document.getElementById('payRate').textContent=`$${rate}/hr`;
+  document.getElementById('payHours').textContent=`${hours} hr${hours!==1?'s':''}`;
+  document.getElementById('payFee').textContent=`$${fee}`;
+  document.getElementById('payTotal').textContent=`$${total}`;
+  document.getElementById('payBtnAmt').textContent=`$${total}`;
+  goPage('payments', null);
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+}
+
+function setPayMethod(btn, method){
+  document.querySelectorAll('.method-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  ['card','ach','wallet'].forEach(m=>{
+    const el=document.getElementById(`payForm-${m}`);
+    if(el) el.style.display=m===method?'block':'none';
+  });
+}
+
+function formatCard(el){
+  let v=el.value.replace(/\D/g,'').substring(0,16);
+  el.value=v.replace(/(.{4})/g,'$1  ').trim();
+}
+function formatExp(el){
+  let v=el.value.replace(/\D/g,'');
+  if(v.length>=2) v=v.substring(0,2)+' / '+v.substring(2,4);
+  el.value=v;
+}
+
+function processPayment(){
+  const name=document.getElementById('cardName')?.value.trim();
+  const num=document.getElementById('cardNum')?.value.replace(/\s/g,'');
+  const exp=document.getElementById('cardExp')?.value.trim();
+  const total=document.getElementById('payTotal').textContent;
+  const prov=document.getElementById('payProvName').textContent;
+  if(!name||num.length<16||!exp){showToast('Please complete all payment fields.', true);return;}
+  showPaySuccess(prov, total);
+}
+
+function showPaySuccess(provider, amount){
+  document.getElementById('page-payments').innerHTML=`
+    <div class="success-screen">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Payment Confirmed!</div>
+      <div class="success-sub">Your payment of <strong>${amount}</strong> to <strong>${provider}</strong> has been processed and held in escrow.<br/>It will be released once you confirm the work is complete.</div>
+      <div class="success-details">
+        <div class="detail-row"><span class="detail-key">Provider</span><span class="detail-val">${provider}</span></div>
+        <div class="detail-row"><span class="detail-key">Amount</span><span class="detail-val" style="color:var(--teal)">${amount}</span></div>
+        <div class="detail-row"><span class="detail-key">Status</span><span class="detail-val" style="color:var(--teal)">In Escrow ✓</span></div>
+        <div class="detail-row"><span class="detail-key">Confirmation #</span><span class="detail-val">FB-${Date.now().toString().slice(-8)}</span></div>
+      </div>
+      <button class="btn btn-teal" onclick="goPage('marketplace',null)" style="padding:12px 30px">Back to Marketplace →</button>
+    </div>`;
+}
+
+/* ─── PROVIDER PORTAL ─── */
+function renderPortal(){
+  const reqList = document.getElementById('requestsList');
+  const fullList = document.getElementById('fullRequestsList');
+  const html = incomingRequests.slice(0,3).map(r=>requestCardHTML(r)).join('');
+  const fullHtml = incomingRequests.map(r=>requestCardHTML(r)).join('');
+  if(reqList) reqList.innerHTML=html;
+  if(fullList) fullList.innerHTML=fullHtml;
+}
+
+function requestCardHTML(r){
+  return `<div class="req-card" onclick="acceptRequest(${r.id},'${r.title}')">
+    <div class="req-icon">📥</div>
+    <div style="flex:1">
+      <div class="req-title">${r.title}</div>
+      <div class="req-meta"><span>${r.category}</span><span>${r.urgency}</span><span>${r.time}</span></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px">${r.desc}</div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-teal" style="padding:7px 16px;font-size:13px" onclick="event.stopPropagation();acceptRequest(${r.id},'${r.title}')">Accept</button>
+        <button class="btn btn-outline" style="padding:7px 16px;font-size:13px" onclick="event.stopPropagation();showToast('Request declined.')">Decline</button>
+      </div>
+    </div>
+    <div class="req-budget"><strong>${r.budget}</strong><span>budget</span></div>
+  </div>`;
+}
+
+function acceptRequest(id, title){
+  showToast(`✓ Accepted: "${title.substring(0,40)}…"`);
+}
+
+/* ─── CHARTS ─── */
+function renderCharts(){
+  const weeks = ['W1','W2','W3','W4','W5','W6','W7','W8'];
+  const vals = [620,890,740,1100,980,1340,1050,1420];
+  const max = Math.max(...vals);
+  ['earningsChart','earningsChart2'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.innerHTML = weeks.map((w,i)=>`
+      <div class="bar-wrap">
+        <div class="bar" style="height:${(vals[i]/max)*80}px" title="$${vals[i]}"></div>
+        <div class="bar-label">${w}</div>
+      </div>
+    `).join('');
+  });
+}
+
+/* ─── MODAL ─── */
+function closeModal(e){ if(e.target===document.getElementById('modalOverlay')) closeModalDirect(); }
+function closeModalDirect(){ document.getElementById('modalOverlay').classList.remove('open'); }
+
+/* ─── UTILS ─── */
+function scrollToTicket(){ document.getElementById('ticketSection')?.scrollIntoView({behavior:'smooth'}); }
+
+function showToast(msg, warn=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.background=warn?'var(--amber)':'var(--teal)';
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+let liveCount=847;
+setInterval(()=>{
+  liveCount+=Math.floor(Math.random()*3)-1;
+  liveCount=Math.max(840,Math.min(860,liveCount));
+  const el=document.getElementById('liveCount');
+  if(el) el.textContent=liveCount;
+},3000);
+</script>
+</body>
+</html>
